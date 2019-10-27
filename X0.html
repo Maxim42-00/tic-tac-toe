@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> X0 game </title>
+    <script type="text/javascript" src="https://unpkg.com/react@16.9.0/umd/react.development.js"> </script>
+    <script type="text/javascript" src="https://unpkg.com/react-dom@16.9.0/umd/react-dom.development.js"> </script>
+    <script type="text/javascript" src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"> </script>
+</head>
+
+<body>
+    <div id="main"> </div>
+    <script type="text/babel">
+        class Cell extends React.Component
+        {
+            constructor(props)
+            {
+                super(props);
+                this.state={
+                    bgColor: "black"
+                };
+                this.highlight=this.highlight.bind(this);
+            }
+            highlight()
+            {
+                if(this.state.bgColor=="black")
+                    this.setState({bgColor: "gray"});
+                else
+                    this.setState({bgColor: "black"});
+            }
+            render()
+            {
+                let style={
+                    display: "inline-block",
+                    verticalAlign: "top",
+                    width: "50px",
+                    height: "50px",
+                    border: "solid 5px",
+                    fontSize: "40px",
+                    textAlign: "center",
+                    borderColor: (this.props.bgColor || this.state.bgColor)
+                };
+                return (
+                    <div style={style} 
+                         onMouseEnter={this.highlight} 
+                         onMouseOut={this.highlight}
+                         onClick={() => this.props.handleClick(this.props.id)}> 
+                        {this.props.content}
+                    </div>
+                );
+            }
+        }
+
+        class X0 extends React.Component
+        {
+            constructor(props)
+            {
+                super(props);
+                this.style={
+                    fontSize: "20px"
+                };
+                this.state={
+                    mas: []
+                };
+                this.player = "X";
+                this.winner_line = false;
+                this.handleClick = this.handleClick.bind(this);
+                this.game_over = this.game_over.bind(this);
+                this.message = "Player: X";
+                for(let i=0;i<12;i++)
+                    this.state.mas[i]="";
+            }
+            handleClick(id)
+            {
+                if(this.winner_line)
+                    return;
+                let mas = this.state.mas;
+                if(mas[id] != "")
+                    return;
+                mas[id] = this.player;
+                this.setState({mas: mas});
+                if(this.player == "X")
+                    this.player = "0";
+                else
+                    this.player = "X";
+                if(this.winner_line=this.game_over())
+                    this.message = "Player " + this.state.mas[this.winner_line[0]] + " won the game!";
+                else
+                    this.message = "Player: " + this.player;
+            }
+            componentDidUpdate()
+            {
+                setTimeout(
+                    () => {
+                        if(this.winner_line)
+                        {
+                            alert("player " + this.state.mas[this.winner_line[0]] + " won the game!");
+                        }
+                    }, 
+                50);
+            }
+            game_over()
+            {
+                let mas = this.state.mas;
+                if(this.equal(mas[0], mas[1], mas[2])) return [0,1,2];
+                if(this.equal(mas[4], mas[5], mas[6])) return [4,5,6];
+                if(this.equal(mas[8], mas[9], mas[10])) return [8,9,10];
+                if(this.equal(mas[0], mas[4], mas[8])) return [0,4,8];
+                if(this.equal(mas[1], mas[5], mas[9])) return [1,5,9];
+                if(this.equal(mas[2], mas[6], mas[10])) return [2,6,10];
+                if(this.equal(mas[0], mas[5], mas[10])) return [0,5,10];
+                if(this.equal(mas[2], mas[5], mas[8])) return [2,5,8];
+                return false;
+            }
+            equal(a, b, c)
+            {
+                if((a==b) && (b==c) && (a!=""))
+                    return true;
+                return false;
+            }
+            render()
+            {
+                return (
+                    <div>
+                        {this.state.mas.map(
+                            (value, i) => {
+                                if((i==3) || (i==7) || (i==11)) 
+                                    return <br key={i} />; 
+                                let bgColor=0;
+                                if(this.winner_line)
+                                {
+                                    if(this.winner_line.indexOf(i)!=-1)
+                                        bgColor="green";
+                                }
+                                return <Cell content={value} 
+                                             id={i} 
+                                             key={i} 
+                                             handleClick={(id) => this.handleClick(id)}
+                                             bgColor = {bgColor}
+                                       />;
+                             }
+                        )}
+                        <div style={this.style}> {this.message} </div>
+                    </div>
+                );
+            }
+        }
+        ReactDOM.render(
+            <X0 />,
+            document.querySelector("#main")
+        );
+    </script>
+</body>
+
+</html>
